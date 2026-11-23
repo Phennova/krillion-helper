@@ -25,7 +25,7 @@ Unofficial fan project. Not affiliated with Krillion or its developer.
   locks it in.
 - **Auto-play (optional, Puffer Party).** The `auto` button makes it answer by
   itself whenever the puffer lands on you, retrying until one is accepted and
-  the turn passes. It switches itself off in rated games.
+  the turn passes.
 - **Learns as you play.** Answers Krillion accepts (from anyone at the table)
   are saved with their real rarity tier and shown first with a ✓ the next time
   that question comes up. Answers it rejects are dropped.
@@ -100,8 +100,6 @@ from a browser extension. Claude runs with all tools disabled.
 - **Selectors can break.** The extension relies on Krillion's current page
   structure. If the panel stops finding questions after a site update, the
   selectors at the top of `content.js` need updating.
-- **Play fair.** Rated Puffer Party games move other people's ratings. Keep
-  this to private rooms with friends and unrated play.
 
 ## Development
 
