@@ -23,6 +23,9 @@ Unofficial fan project. Not affiliated with Krillion or its developer.
 - **Types for you (optional).** `type answer ▶` types and submits the top
   unused answer. `try again ↻` deletes it and types the next one. `worked ✓`
   locks it in.
+- **Auto-play (optional, Puffer Party).** The `auto` button makes it answer by
+  itself whenever the puffer lands on you, retrying until one is accepted and
+  the turn passes. It switches itself off in rated games.
 - **Learns as you play.** Answers Krillion accepts (from anyone at the table)
   are saved with their real rarity tier and shown first with a ✓ the next time
   that question comes up. Answers it rejects are dropped.

@@ -20,6 +20,8 @@
     tried: new Set(),  // answers the auto-typer submitted that didn't work
     current: '',       // answer the auto-typer submitted last
     typing: false,
+    auto: false,       // auto-play: answer on our turn without button presses
+    waitUntil: 0,      // auto-play: when to give up waiting for a verdict
     status: 'waiting for a question…',
     loading: false,
     sort: 'easy',   // 'easy' | 'rare'
@@ -74,6 +76,8 @@
       .auto button{flex:1;text-align:center;padding:6px 4px;font-size:12px;color:#fff}
       .auto .go{background:#1d4f8f;border-color:#3a7bd0}
       .auto .ok{background:#1c6b4a;border-color:#38a877}
+      .auto .ap{flex:0 0 auto;padding:6px 8px}
+      .auto .ap.on{background:#8a5a12;border-color:#f0c060}
       .collapsed .q,.collapsed .status,.collapsed ol,.collapsed .auto{display:none}
       .collapsed{width:auto}
     </style>
@@ -87,6 +91,7 @@
       <div class="auto">
         <button class="go" data-act="next"></button>
         <button class="ok" data-act="worked">worked ✓</button>
+        <button class="ap" data-act="auto" title="Auto-play: answer by itself on your turn (Puffer Party, unrated only)"></button>
       </div>
       <div class="status"></div><ol></ol>
     </div>`;
@@ -100,6 +105,7 @@
     if (!act) return;
     if (act === 'next') return typeNext();
     if (act === 'worked') return markWorked();
+    if (act === 'auto') { state.auto = !state.auto; state.waitUntil = 0; return render(); }
     if (act === 'sort') state.sort = state.sort === 'easy' ? 'rare' : 'easy';
     if (act === 'side') state.side = state.side === 'right' ? 'left' : 'right';
     if (act === 'collapse') state.collapsed = !state.collapsed;
@@ -160,9 +166,34 @@
       if (input.form) input.form.requestSubmit();
       else input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }));
       state.status = `sent “${next.text}”. worked?`;
+      state.waitUntil = Date.now() + 1500;
     }
     state.typing = false;
     render();
+  }
+
+  // ---------- auto-play (Puffer Party) ----------
+  // The answer box reads "your puffer — type!" for exactly as long as the game
+  // will take a submit from us, so that is the turn signal. The seat's .hold
+  // class is only a fallback: the game repaints it on table updates, and after
+  // a pop it stays off (the puffer is frozen when the new holder arrives) until
+  // something else redraws the seat, such as a rejected answer.
+  const myTurn = () =>
+    /^your puffer/i.test(document.querySelector('input[aria-label="Your answer"]')?.placeholder || '') ||
+    !!document.querySelector('.pf-seat.me.hold');
+  // Quick-play tables label themselves "Rated ..." or "Unrated ...".
+  const isRated = () => !!document.querySelector('.pf-room-privacy[aria-label^="Rated"]');
+
+  function autoStep() {
+    if (!state.auto || state.typing) return;
+    if (!myTurn()) {
+      // Turn passed: whatever we sent last was accepted (or the round ended).
+      if (state.current) { state.current = ''; render(); }
+      return;
+    }
+    if (state.loading || !state.answers.length) return;   // still waiting on Claude
+    if (state.current && Date.now() < state.waitUntil) return; // waiting for the verdict
+    typeNext();
   }
 
   function markWorked() {
@@ -179,6 +210,9 @@
     $('[data-act=next]').textContent = state.current ? 'try again ↻' : 'type answer ▶';
     $('[data-act=sort]').textContent = state.sort === 'easy' ? 'easy first' : 'rare first';
     $('[data-act=collapse]').textContent = state.collapsed ? '+' : '–';
+    const ap = $('[data-act=auto]');
+    ap.textContent = state.auto ? 'auto ON' : 'auto';
+    ap.className = 'ap' + (state.auto ? ' on' : '');
     $('.q').textContent = state.question || '—';
     const st = $('.status');
     st.textContent = state.status;
@@ -281,6 +315,7 @@
       if (!text) continue;
       if (/already said/i.test(msg)) { state.used.add(norm(text)); changed = true; }
       else if (learnRejected(text)) changed = true;
+      state.waitUntil = 0; // bounced: auto-play can move on right away
     }
     return changed;
   }
@@ -339,6 +374,7 @@
     render();
     new MutationObserver(schedule).observe(document.documentElement, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class'] });
     setInterval(tick, 1000); // safety net
+    setInterval(autoStep, 150);
     tick();
   }
 

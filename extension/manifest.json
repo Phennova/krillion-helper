@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Krillion Helper",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Reads the current Krillion prompt and lists answers, easiest to type first.",
   "browser_specific_settings": {
     "gecko": { "id": "krillion-helper@local" }
