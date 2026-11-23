@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "name": "Krillion Helper",
+  "version": "1.2.0",
+  "description": "Reads the current Krillion prompt and lists answers, easiest to type first.",
+  "browser_specific_settings": {
+    "gecko": { "id": "krillion-helper@local" }
+  },
+  "permissions": ["storage", "http://127.0.0.1/*"],
+  "background": { "scripts": ["background.js"] },
+  "content_scripts": [
+    {
+      "matches": ["https://krillion.io/*", "https://www.krillion.io/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

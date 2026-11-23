@@ -1,0 +1,4 @@
+server/answers-cache.json
+server/learned.json
+.DS_Store
+.gstack/
